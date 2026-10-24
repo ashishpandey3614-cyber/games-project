@@ -1,0 +1,304 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Catcher Game</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #222;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #game {
+            position: relative;
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(#87ceeb, #e0f7ff);
+            overflow: hidden;
+            border: 4px solid white;
+        }
+
+        #player {
+            position: absolute;
+            width: 120px;
+            height: 60px;
+            background: royalblue;
+            border-radius: 10px;
+            bottom: 30px;
+            left: 370px;
+        }
+
+        .coin {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: gold;
+            border-radius: 50%;
+            border: 3px solid orange;
+        }
+
+        #score {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        #gameOver {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-size: 35px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            color: white;
+            background-color: #4CAF50;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+       
+#instructions {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    
+
+    display: flex;
+    justify-content: space-between;
+
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.controls button {
+    width: 70px;
+    height: 60px;
+ 
+    font-size: 25px;
+    border-radius: 15px;
+     touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+
+    cursor: pointer;
+    touch-action: manipulation;
+}
+#move-button moveleft {
+    background-color: #4CAF50;
+    color: white;
+}
+
+@media screen and (max-width: 600px) {
+
+    #game {
+        width: 100%;
+        max-width: 400px;
+        height: 600px;
+        margin: auto;
+    }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="score">Score: 0</div>
+
+    <div id="player"></div>
+
+    <div id="instructions">
+         <button class="move-button moveleft" onclick="moveLeft()"> ⬅️ LEFT </button>
+         <button class="move-button moveright" onclick="moveRight()"> ➡️ RIGHT </button>
+    </div>
+
+    <div id="gameOver">
+        <div>GAME OVER</div>
+        <div id="finalScore"></div>
+        <button onclick="restartGame()">Restart</button>
+    
+    </div>
+
+</div>
+
+<script>
+
+    const game = document.getElementById("game");
+     const move = document.getElementById("move");
+    const player = document.getElementById("player");
+    const scoreText = document.getElementById("score");
+    const gameOverScreen = document.getElementById("gameOver");
+    const finalScore = document.getElementById("finalScore");
+
+    let playerX = 370;
+    let score = 0;
+    let gameRunning = true;
+
+    const speed = 20;
+
+    // Player movement
+    document.addEventListener("keydown", function(event) {
+
+        if (!gameRunning)
+         movingLeft = false;
+        movingRight = false;
+        
+        return;
+
+        if (event.key ==="ArrowLeft") {
+            playerX -= speed;
+        }
+
+        if (event.key === "ArrowRight") {
+            playerX += speed;
+        }
+
+        // Player game end
+        if (playerX < 0) {
+            playerX = 0;
+        }
+
+        if (playerX > 500) {
+            playerX = 500;
+        }
+    
+        player.style.left = playerX + "px";
+    });
+    function moveLeft() {
+    if (playerX > 0) {
+        playerX -= speed;
+    }
+
+    player.style.left = playerX + "px";
+}
+
+function moveRight() {
+    if (playerX < 500) {
+        playerX += speed;
+    }
+
+    player.style.left = playerX + "px";
+}
+
+
+    // Coin 
+    function createCoin() {
+
+        if (!gameRunning) return;
+
+        const coin = document.createElement("div");
+
+        coin.classList.add("coin");
+
+        let coinX = Math.random() * 500;
+
+        coin.style.left = coinX + "px";
+        coin.style.top = "0px";
+
+        game.appendChild(coin);
+
+        let coinY = 0;
+
+        const fall = setInterval(function() {
+
+            if (!gameRunning) {
+                clearInterval(fall);
+                coin.remove();
+                return;
+            }
+
+            coinY += 5;
+
+            coin.style.top = coinY + "px";
+
+
+            // Collision check
+            const playerRect = player.getBoundingClientRect();
+            const coinRect = coin.getBoundingClientRect();
+
+            if (
+                playerRect.left < coinRect.right &&
+                playerRect.right > coinRect.left &&
+                playerRect.top < coinRect.bottom &&
+                playerRect.bottom > coinRect.top
+            ) {
+
+                score++;
+
+                scoreText.innerText = "Score: " + score;
+
+                coin.remove();
+
+                clearInterval(fall);
+            }
+
+
+            // Coin नीचे गिर गया
+            if (coinY > 700) {
+
+                clearInterval(fall);
+
+                coin.remove();
+
+                gameOver();
+
+            }
+
+        }, 15);
+    }
+
+
+    // हर 1 सेकंड में coin
+    setInterval(createCoin, 600);
+
+
+    // Game Over
+    function gameOver() {
+
+        if (!gameRunning) return;
+
+        gameRunning = false;
+
+        finalScore.innerText = "Your Score: " + score;
+
+        gameOverScreen.style.display = "flex";
+    }
+
+
+    // Restart
+    function restartGame() {
+
+        location.reload();
+
+    }
+
+</script>
+
+</body>
+</html>
+```
